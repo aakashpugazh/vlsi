@@ -1,0 +1,32 @@
+module sequence_detector(
+    input in, input clk,
+    output  out,    
+    wire a,b,A,B);
+
+    d_flip_flop one(A,a,(~in & B)|(in & A & b),clk);
+    d_flip_flop two(B,b,(in & a)|(in & b),clk);
+    assign out = in&A&B;
+
+    
+endmodule
+
+module d_flip_flop(
+    output reg Q,
+    output reg Qbar,
+    input D,
+    input Clk
+    );
+    always @(posedge Clk)
+    begin
+    if(D==1)
+    begin
+    Q<=1;
+    Qbar<=0;
+    end
+    else
+    begin
+    Q<=0;
+    Qbar<=1;
+    end
+    end
+endmodule
