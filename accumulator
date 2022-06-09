@@ -1,0 +1,65 @@
+module accumod (in, acc, clk, reset);
+
+input [7:0] in;
+
+input clk, reset;
+
+output [7:0] acc;
+
+reg [7:0] acc;
+
+always@(clk) begin
+
+if(reset)
+
+acc <= 8’b00000000;
+
+else
+
+acc <= acc + in;
+
+end
+
+endmodule
+
+
+
+
+
+TEST BENCH
+
+ 
+
+module accumt_b;
+
+reg [7:0] in;
+
+reg clk;
+
+reg reset;
+
+wire [7:0] acc;
+
+accumod uut ( .in(in), .acc(acc),.clk(clk),.reset(reset) );
+
+initial begin
+
+#5 reset<=1’b1;
+
+#5 reset<=1’b0;
+
+clk =1’b0;
+
+in = 8’b00000001;
+
+#50 in = 8’b00000010;
+
+#50 in = 8’b00000011;
+
+end
+
+always #10 clk = ~clk;
+
+initial#180 $stop;
+
+endmodule

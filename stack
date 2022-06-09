@@ -1,0 +1,146 @@
+module Stack(
+clk, rstn, pop, push, empty, full, din, dout
+);
+parameter WIDTH = 8;
+parameter DEPTH = 8;
+input clk;
+input rstn;
+input pop;
+input push;
+input [WIDTH-1:0]din;
+output [WIDTH-1:0]dout;
+output empty;
+output full;
+reg [WIDTH-1:0]stack[DEPTH-1:0]; //memory
+reg [WIDTH-1:0]index, next_index;
+reg [WIDTH-1:0]dout, next_dout;
+wire empty, full;
+ila_1 your_instance_name (
+.clk(clk), // input wire clk
+.probe0(clk), // input wire [7:0] probe0
+.probe1(rstn), // input wire [7:0] probe1
+.probe2(pop), // input wire [7:0] probe2
+.probe3(push), // input wire [7:0] probe3
+.probe4(empty), // input wire [7:0] probe4
+.probe5(full), // input wire [7:0] probe5
+.probe6(din), // input wire [0:0] probe6
+.probe7(dout) // input wire [0:0] probe7
+);
+always @ (posedge clk) //Sequential block
+begin
+if(!rstn)
+begin
+dout <= 8'd0;
+index <= 1'b0;
+end
+else
+begin
+dout <= next_dout;
+index <= next_index;
+end
+end
+assign empty = !(|index);
+assign full = !(|(index ^ DEPTH));
+always @ (*) //Combinational Block
+begin
+if(push) //write
+begin
+stack[index] = din;
+next_index = index+1'b1;
+end
+else if(pop) //read
+begin
+next_dout = stack[index-1'b1];
+next_index = index-1'b1;
+end
+else
+begin
+next_dout = dout;
+next_index = index;
+end
+end
+endmodule
+
+
+
+
+
+
+module Stack_tb;
+// Inputs
+reg clk;
+reg rstn;
+reg pop;
+reg push;
+reg [7:0] din;
+// Outputs
+wire empty;
+wire full;
+wire [7:0] dout;
+// Instantiate the Unit Under Test (UUT)
+Stack uut (
+.clk(clk),
+.rstn(rstn),
+.pop(pop),
+.push(push),
+.empty(empty),
+.full(full),
+.din(din),
+.dout(dout)
+);
+always #5 clk = ~clk;
+task reset(); //reset task
+begin
+clk = 1'b1;
+rstn = 1'b0;
+pop = 1'b0;
+push = 1'b0;
+din = 8'd0;
+#30 rstn = 1'b1;
+end
+endtask
+task read_stack(); //read task
+begin
+pop = 1'b1;
+#10
+pop = 1'b0;
+end
+endtask
+task write_stack([7:0]din_tb); //write task
+begin
+push = 1'b1;
+din = din_tb;
+#10 push = 1'b0;
+end
+endtask
+// Main code
+initial
+begin
+reset();
+#10;
+repeat(2)
+begin
+write_stack(8'h11);
+#10;
+write_stack(8'h22);
+#10;
+write_stack(8'h33);
+#10;
+write_stack(8'h44);
+#40;
+end
+read_stack();
+#20;
+read_stack();
+#20;
+write_stack(8'hAA);
+#10;
+write_stack(8'hBB);
+#40;
+read_stack();
+#20;
+$finish;
+end
+endmodule
+
+
