@@ -1,0 +1,90 @@
+#use ctrl+shift+v to paste commands in terminal
+#run commands as root
+#replace username with your username in line 5,30,32
+$sudo -i 
+$cd /home/username
+$mkdir caravel_tutorial
+$cd caravel_tutorial
+$apt update
+$apt install python3 python3-pip build-essential git-all
+
+#Docker installation
+$sudo apt-get install ca-certificates curl gnupg lsb-release
+
+$curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+
+$echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+$sudo apt-get update
+
+$sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin
+
+#to check docker is running correctly
+$docker run hello-world
+
+$git clone -b mpw-6c https://github.com/efabless/caravel_user_project caravel_walkthrough
+
+$cd caravel_walkthrough
+
+#if the terminal closed,the export commands must be run again
+$export OPENLANE_ROOT=/home/username/caravel_tutorial/openlane
+
+$export PDK_ROOT=/home/username/caravel_tutorial/pdk
+
+$make setup
+
+#example project
+$make user_proj_example
+
+----------------------------------------------------------------------
+			KLAYOUT process
+
+$apt install klayout
+open the openlane folder in caravel_walkthrough
+goto user_proj_example/runs/user_proj_example/results/final/gds
+$klayout user_proj_example.gds
+-----------------------------------------------------------------------
+
+after successful run of user_proj_example
+open caravel_tutorial/caravel_walkthrough/openlane
+create new folder of your name here adder is used
+copy config.json,config.tcl,pin_order.cfg from user_proj_example
+In config.json replace user_proj_example to adder in line 9 and 20
+In config.tcl replace user_proj_example to adder in line 21 and 25
+In pin_order.cfg add your i/o pins
+
+now move onto caravel_walkthrough/verilog/rtl
+create adder.v and copy the contents of user_proj_example.v
+change module name to adder
+add your modified code in adder.v like adder below
+
+----#code begin#--------
+module adder #(
+    parameter BITS = 32
+)(
+`ifdef USE_POWER_PINS
+    inout vccd1,	// User area 1 1.8V supply
+    inout vssd1,	// User area 1 digital ground
+`endif
+
+    // IOs
+    input  [16:15] a,
+    input  [18:17] b,
+    output [20:19] s,
+    output [22:21] io_oeb,
+);
+
+    // IO
+    assign s = a^b;
+    assign io_oeb = 1'b0;
+
+endmodule
+`default_nettype wire
+
+--------#code end-----------
+
+save everything and run the command below
+
+$make adder
+
+repeat KLAYOUT process with adder
